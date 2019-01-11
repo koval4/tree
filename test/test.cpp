@@ -48,27 +48,35 @@ TEST_CASE("Tree node constructed", "[tree_node]") {
     tree_node<int> node{1};
     REQUIRE(node.value() == 1);
     REQUIRE(node.parent() == nullptr);
-    REQUIRE(node.left() == nullptr);
-    REQUIRE(node.right() == nullptr);
+    REQUIRE(node.prev_sibling() == nullptr);
+    REQUIRE(node.next_sibling() == nullptr);
+    REQUIRE(node.first_child() == nullptr);
+    REQUIRE(node.last_child() == nullptr);
 
     tree_node<int> another_node{node};
     REQUIRE(another_node.value() == 1);
     REQUIRE(another_node.parent() == nullptr);
-    REQUIRE(another_node.left() == nullptr);
-    REQUIRE(another_node.right() == nullptr);
+    REQUIRE(node.prev_sibling() == nullptr);
+    REQUIRE(node.next_sibling() == nullptr);
+    REQUIRE(node.first_child() == nullptr);
+    REQUIRE(node.last_child() == nullptr);
 
-    tree_node<int> other_node{2, &node, nullptr, nullptr};
+    tree_node<int> other_node{2, &node, nullptr, nullptr, nullptr, nullptr};
     REQUIRE(other_node.parent() == &node);
-    REQUIRE(other_node.left() == nullptr);
-    REQUIRE(other_node.right() == nullptr);
+    REQUIRE(node.prev_sibling() == nullptr);
+    REQUIRE(node.next_sibling() == nullptr);
+    REQUIRE(node.first_child() == nullptr);
+    REQUIRE(node.last_child() == nullptr);
 
-    tree_node<std::vector<int>> vec_node{std::vector{1, 2, 3}, nullptr, nullptr, nullptr};
+    tree_node<std::vector<int>> vec_node{std::vector{1, 2, 3}, nullptr, nullptr, nullptr, nullptr, nullptr};
     REQUIRE(vec_node.value()[0] == 1);
     REQUIRE(vec_node.value()[1] == 2);
     REQUIRE(vec_node.value()[2] == 3);
     REQUIRE(vec_node.parent() == nullptr);
-    REQUIRE(vec_node.left() == nullptr);
-    REQUIRE(vec_node.right() == nullptr);
+    REQUIRE(node.prev_sibling() == nullptr);
+    REQUIRE(node.next_sibling() == nullptr);
+    REQUIRE(node.first_child() == nullptr);
+    REQUIRE(node.last_child() == nullptr);
 }
 
 TEST_CASE("Tree constructed", "[tree]") {

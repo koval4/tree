@@ -46,8 +46,10 @@ namespace detail {
 template <typename T>
 struct tree_node_impl {
     tree_node_impl* parent;
-    tree_node_impl* left;
-    tree_node_impl* right;
+    tree_node_impl* prev_sibling;
+    tree_node_impl* next_sibling;
+    tree_node_impl* first_child;
+    tree_node_impl* last_child;
     T value;
 
     template <typename U = T,
@@ -57,8 +59,10 @@ struct tree_node_impl {
                   std::is_constructible_v<T, U&&>, int> = 0>
     explicit tree_node_impl(U&& value) noexcept(std::is_nothrow_constructible_v<T, U&&>)
         : parent{nullptr}
-        , left{nullptr}
-        , right{nullptr}
+        , prev_sibling{nullptr}
+        , next_sibling{nullptr}
+        , first_child{nullptr}
+        , last_child{nullptr}
         , value{std::forward<U>(value)} {}
 
     template <typename U = T,
@@ -68,8 +72,10 @@ struct tree_node_impl {
                   std::is_constructible_v<T, U&&>, int> = 0>
     tree_node_impl(U&& value) noexcept(std::is_nothrow_constructible_v<T, U&&>)
         : parent{nullptr}
-        , left{nullptr}
-        , right{nullptr}
+        , prev_sibling{nullptr}
+        , next_sibling{nullptr}
+        , first_child{nullptr}
+        , last_child{nullptr}
         , value{std::forward<U>(value)} {}
 
     template <typename U = T,
@@ -77,24 +83,32 @@ struct tree_node_impl {
                   !std::is_same_v<tree_node_impl<T>, std::decay_t<U>> &&
                   std::is_constructible_v<T, U&&>, int> = 0>
     tree_node_impl(U&& value,
-              tree_node_impl<T>* parent,
-              tree_node_impl<T>* left,
-              tree_node_impl<T>* right) noexcept(std::is_nothrow_constructible_v<T, U&&>)
+                   tree_node_impl<T>* parent,
+                   tree_node_impl<T>* prev_sibling,
+                   tree_node_impl<T>* next_sibling,
+                   tree_node_impl<T>* first_child,
+                   tree_node_impl<T>* last_child) noexcept(std::is_nothrow_constructible_v<T, U&&>)
         : parent{parent}
-        , left{left}
-        , right{right}
+        , prev_sibling{prev_sibling}
+        , next_sibling{next_sibling}
+        , first_child{first_child}
+        , last_child{last_child}
         , value{std::forward<U>(value)} {}
 
     tree_node_impl(const tree_node_impl& other) noexcept(std::is_nothrow_copy_constructible_v<T>)
         : parent{other.parent}
-        , left{other.parent}
-        , right{other.parent}
+        , prev_sibling{other.prev_sibling}
+        , next_sibling{other.next_sibling}
+        , first_child{other.first_child}
+        , last_child{other.last_child}
         , value{other.value} {}
 
     tree_node_impl(tree_node_impl&& other) noexcept(std::is_nothrow_move_constructible_v<T>)
         : parent{other.parent}
-        , left{other.left}
-        , right{other.right}
+        , prev_sibling{other.prev_sibling}
+        , next_sibling{other.next_sibling}
+        , first_child{other.first_child}
+        , last_child{other.last_child}
         , value{std::move(value)} {}
 };
 
@@ -122,16 +136,33 @@ struct tree_node : private tree_node_impl<T>, private detail::enable_special_mem
                   std::is_constructible_v<T, U&&>, int> = 0>
     tree_node(U&& value,
               tree_node<T>* parent,
-              tree_node<T>* left,
-              tree_node<T>* right) noexcept(std::is_nothrow_constructible_v<T, U&&>)
-        : tree_node_impl<T>{std::forward<U>(value), parent, left, right} {}
+              tree_node<T>* prev_sibling,
+              tree_node<T>* next_sibling,
+              tree_node<T>* first_child,
+              tree_node<T>* last_child) noexcept(std::is_nothrow_constructible_v<T, U&&>)
+        : tree_node_impl<T>{
+            std::forward<U>(value),
+            parent,
+            prev_sibling,
+            next_sibling,
+            first_child,
+            last_child
+        } {}
 
-    tree_node* left() const {
-        return reinterpret_cast<tree_node*>(tree_node_impl<T>::left);
+    tree_node* prev_sibling() const {
+        return reinterpret_cast<tree_node*>(tree_node_impl<T>::prev_sibling);
     }
 
-    tree_node* right() const {
-        return reinterpret_cast<tree_node*>(tree_node_impl<T>::right);
+    tree_node* next_sibling() const {
+        return reinterpret_cast<tree_node*>(tree_node_impl<T>::next_sibling);
+    }
+
+    tree_node* first_child() const {
+        return reinterpret_cast<tree_node*>(tree_node_impl<T>::first_child);
+    }
+
+    tree_node* last_child() const {
+        return reinterpret_cast<tree_node*>(tree_node_impl<T>::last_child);
     }
 
     tree_node* parent() const {
@@ -187,11 +218,13 @@ struct tree_storage {
 
     void clear_node_impl(tree_node<T>* node) noexcept {
         assert(node != nullptr);
-        if (node->left() != nullptr) {
-            clear_node_impl(node->left());
-        }
-        if (node->right() != nullptr) {
-            clear_node_impl(node->right());
+        if (node->first_child() != nullptr) {
+            tree_node<T>* curr_node = node->first_child();
+            while (curr_node != nullptr) {
+                tree_node<T>* tmp = curr_node->next_sibling();
+                clear_node_impl(curr_node);
+                curr_node = tmp;
+            }
         }
 
         allocator_traits::destroy(alloc, node);
