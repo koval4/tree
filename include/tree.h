@@ -149,31 +149,31 @@ struct tree_node : private tree_node_impl<T>, private detail::enable_special_mem
             last_child
         } {}
 
-    tree_node* prev_sibling() const {
+    tree_node* prev_sibling() const noexcept {
         return reinterpret_cast<tree_node*>(tree_node_impl<T>::prev_sibling);
     }
 
-    tree_node* next_sibling() const {
+    tree_node* next_sibling() const noexcept {
         return reinterpret_cast<tree_node*>(tree_node_impl<T>::next_sibling);
     }
 
-    tree_node* first_child() const {
+    tree_node* first_child() const noexcept {
         return reinterpret_cast<tree_node*>(tree_node_impl<T>::first_child);
     }
 
-    tree_node* last_child() const {
+    tree_node* last_child() const noexcept {
         return reinterpret_cast<tree_node*>(tree_node_impl<T>::last_child);
     }
 
-    tree_node* parent() const {
+    tree_node* parent() const noexcept {
         return reinterpret_cast<tree_node*>(tree_node_impl<T>::parent);
     }
 
-    T& value() {
+    T& value() noexcept {
         return tree_node_impl<T>::value;
     }
 
-    const T& value() const {
+    const T& value() const noexcept {
         return tree_node_impl<T>::value;
     }
 };
