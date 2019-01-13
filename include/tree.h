@@ -114,6 +114,8 @@ struct tree_node_impl {
 
 template <typename T>
 struct tree_node : private tree_node_impl<T>, private detail::enable_special_members<T> {
+    using impl = tree_node_impl<T>;
+
     template <typename U = T,
               std::enable_if_t<
                   !std::is_same_v<tree_node<T>, std::decay_t<U>> &&
@@ -150,31 +152,90 @@ struct tree_node : private tree_node_impl<T>, private detail::enable_special_mem
         } {}
 
     tree_node* prev_sibling() const noexcept {
-        return reinterpret_cast<tree_node*>(tree_node_impl<T>::prev_sibling);
+        return reinterpret_cast<tree_node*>(impl::prev_sibling);
     }
 
     tree_node* next_sibling() const noexcept {
-        return reinterpret_cast<tree_node*>(tree_node_impl<T>::next_sibling);
+        return reinterpret_cast<tree_node*>(impl::next_sibling);
     }
 
     tree_node* first_child() const noexcept {
-        return reinterpret_cast<tree_node*>(tree_node_impl<T>::first_child);
+        return reinterpret_cast<tree_node*>(impl::first_child);
     }
 
     tree_node* last_child() const noexcept {
-        return reinterpret_cast<tree_node*>(tree_node_impl<T>::last_child);
+        return reinterpret_cast<tree_node*>(impl::last_child);
     }
 
     tree_node* parent() const noexcept {
-        return reinterpret_cast<tree_node*>(tree_node_impl<T>::parent);
+        return reinterpret_cast<tree_node*>(impl::parent);
     }
 
     T& value() noexcept {
-        return tree_node_impl<T>::value;
+        return impl::value;
     }
 
     const T& value() const noexcept {
-        return tree_node_impl<T>::value;
+        return impl::value;
+    }
+
+    void push_back_child(tree_node* child) noexcept {
+        auto child_impl = static_cast<impl*>(child);
+        auto self_impl = static_cast<impl*>(this);
+
+        if (self_impl->first_child == nullptr) {
+            self_impl->first_child = child;
+        }
+
+        if (self_impl->last_child != nullptr) {
+            self_impl->last_child->next_sibling = child;
+            child_impl->prev_sibling = self_impl->last_child;
+        }
+
+        self_impl->last_child = child;
+        child_impl->parent = this;
+    }
+
+    void push_front_child(tree_node* child) noexcept {
+        auto child_impl = static_cast<impl*>(child);
+        auto self_impl = static_cast<impl*>(this);
+
+        if (self_impl->last_child == nullptr) {
+            self_impl->last_child = child_impl;
+        }
+
+        if (self_impl->first_child != nullptr) {
+            self_impl->first_child->prev_sibling = child_impl;
+            child_impl->next_sibling = self_impl->first_child;
+        }
+
+        self_impl->first_child = child_impl;
+        child_impl->parent = this;
+    }
+
+    void unlink_child(tree_node* child) noexcept {
+        auto child_impl = static_cast<impl*>(child);
+        auto self_impl = static_cast<impl*>(this);
+
+        if (child_impl->prev_sibling != nullptr) {
+            child_impl->prev_sibling->next_sibling = child_impl->next_sibling;
+        }
+
+        if (child_impl->next_sibling != nullptr) {
+            child_impl->next_sibling->prev_sibling = child_impl->prev_sibling;
+        }
+
+        if (self_impl->first_child == child_impl) {
+            self_impl->first_child = child_impl->next_sibling;
+        }
+
+        if (self_impl->last_child == child_impl) {
+            self_impl->last_child = child_impl->prev_sibling;
+        }
+
+        child_impl->parent = nullptr;
+        child_impl->prev_sibling = nullptr;
+        child_impl->next_sibling = nullptr;
     }
 };
 

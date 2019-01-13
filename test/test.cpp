@@ -79,6 +79,164 @@ TEST_CASE("Tree node constructed", "[tree_node]") {
     REQUIRE(node.last_child() == nullptr);
 }
 
+TEST_CASE("tree_node are pushed as childs to back", "[tree_node::push_back_child]") {
+    tree_node<int> root{1};
+    tree_node<int> child1{2};
+    tree_node<int> child2{3};
+    tree_node<int> child3{4};
+
+    root.push_back_child(&child1);
+    REQUIRE(root.first_child() == &child1);
+    REQUIRE(root.last_child() == &child1);
+    REQUIRE(child1.parent() == &root);
+    REQUIRE(child1.prev_sibling() == nullptr);
+    REQUIRE(child1.next_sibling() == nullptr);
+
+    root.push_back_child(&child2);
+    REQUIRE(root.first_child() == &child1);
+    REQUIRE(root.last_child() == &child2);
+    REQUIRE(child1.parent() == &root);
+    REQUIRE(child2.parent() == &root);
+    REQUIRE(child1.prev_sibling() == nullptr);
+    REQUIRE(child1.next_sibling() == &child2);
+    REQUIRE(child2.prev_sibling() == &child1);
+    REQUIRE(child2.next_sibling() == nullptr);
+
+    root.push_back_child(&child3);
+    REQUIRE(root.first_child() == &child1);
+    REQUIRE(root.last_child() == &child3);
+    REQUIRE(child1.parent() == &root);
+    REQUIRE(child2.parent() == &root);
+    REQUIRE(child3.parent() == &root);
+    REQUIRE(child1.prev_sibling() == nullptr);
+    REQUIRE(child1.next_sibling() == &child2);
+    REQUIRE(child2.prev_sibling() == &child1);
+    REQUIRE(child2.next_sibling() == &child3);
+    REQUIRE(child3.prev_sibling() == &child2);
+    REQUIRE(child3.next_sibling() == nullptr);
+}
+
+TEST_CASE("tree_node are pushed as childs to front", "[tree_node::push_front_child]") {
+    tree_node<int> root{1};
+    tree_node<int> child1{2};
+    tree_node<int> child2{3};
+    tree_node<int> child3{4};
+
+    root.push_front_child(&child1);
+    REQUIRE(root.first_child() == &child1);
+    REQUIRE(root.last_child() == &child1);
+    REQUIRE(child1.parent() == &root);
+    REQUIRE(child1.prev_sibling() == nullptr);
+    REQUIRE(child1.next_sibling() == nullptr);
+
+    root.push_front_child(&child2);
+    REQUIRE(root.first_child() == &child2);
+    REQUIRE(root.last_child() == &child1);
+    REQUIRE(child1.parent() == &root);
+    REQUIRE(child2.parent() == &root);
+    REQUIRE(child1.prev_sibling() == &child2);
+    REQUIRE(child1.next_sibling() == nullptr);
+    REQUIRE(child2.prev_sibling() == nullptr);
+    REQUIRE(child2.next_sibling() == &child1);
+
+    root.push_front_child(&child3);
+    REQUIRE(root.first_child() == &child3);
+    REQUIRE(root.last_child() == &child1);
+    REQUIRE(child1.parent() == &root);
+    REQUIRE(child2.parent() == &root);
+    REQUIRE(child3.parent() == &root);
+    REQUIRE(child1.prev_sibling() == &child2);
+    REQUIRE(child1.next_sibling() == nullptr);
+    REQUIRE(child2.prev_sibling() == &child3);
+    REQUIRE(child2.next_sibling() == &child1);
+    REQUIRE(child3.prev_sibling() == nullptr);
+    REQUIRE(child3.next_sibling() == &child2);
+}
+
+TEST_CASE("tree_node are unlinked from parent", "[tree_node::unlink_child]") {
+    tree_node<int> root{1};
+    tree_node<int> child1{2};
+    tree_node<int> child2{3};
+    tree_node<int> child3{4};
+
+    root.push_back_child(&child1);
+    root.push_back_child(&child2);
+    root.push_back_child(&child3);
+
+    root.unlink_child(&child1);
+    REQUIRE(root.first_child() == &child2);
+    REQUIRE(root.last_child() == &child3);
+    REQUIRE(child1.parent() == nullptr);
+    REQUIRE(child1.prev_sibling() == nullptr);
+    REQUIRE(child1.next_sibling() == nullptr);
+    REQUIRE(child2.prev_sibling() == nullptr);
+    REQUIRE(child2.next_sibling() == &child3);
+
+    root.unlink_child(&child2);
+    REQUIRE(root.first_child() == &child3);
+    REQUIRE(root.last_child() == &child3);
+    REQUIRE(child2.parent() == nullptr);
+    REQUIRE(child2.prev_sibling() == nullptr);
+    REQUIRE(child2.next_sibling() == nullptr);
+    REQUIRE(child3.prev_sibling() == nullptr);
+    REQUIRE(child3.next_sibling() == nullptr);
+
+    root.unlink_child(&child3);
+    REQUIRE(root.first_child() == nullptr);
+    REQUIRE(root.last_child() == nullptr);
+    REQUIRE(child3.parent() == nullptr);
+
+    root.push_back_child(&child1);
+    root.push_back_child(&child2);
+    root.push_back_child(&child3);
+
+    root.unlink_child(&child3);
+    REQUIRE(root.first_child() == &child1);
+    REQUIRE(root.last_child() == &child2);
+    REQUIRE(child3.parent() == nullptr);
+    REQUIRE(child2.prev_sibling() == &child1);
+    REQUIRE(child2.next_sibling() == nullptr);
+    REQUIRE(child3.prev_sibling() == nullptr);
+    REQUIRE(child3.next_sibling() == nullptr);
+
+    root.unlink_child(&child2);
+    REQUIRE(root.first_child() == &child1);
+    REQUIRE(root.last_child() == &child1);
+    REQUIRE(child2.parent() == nullptr);
+    REQUIRE(child1.prev_sibling() == nullptr);
+    REQUIRE(child1.next_sibling() == nullptr);
+
+    root.unlink_child(&child1);
+    REQUIRE(root.first_child() == nullptr);
+    REQUIRE(root.last_child() == nullptr);
+    REQUIRE(child1.parent() == nullptr);
+
+    root.push_back_child(&child1);
+    root.push_back_child(&child2);
+    root.push_back_child(&child3);
+
+    root.unlink_child(&child2);
+    REQUIRE(root.first_child() == &child1);
+    REQUIRE(root.last_child() == &child3);
+    REQUIRE(child2.parent() == nullptr);
+    REQUIRE(child1.prev_sibling() == nullptr);
+    REQUIRE(child1.next_sibling() == &child3);
+    REQUIRE(child3.prev_sibling() == &child1);
+    REQUIRE(child3.next_sibling() == nullptr);
+
+    root.unlink_child(&child1);
+    REQUIRE(root.first_child() == &child3);
+    REQUIRE(root.last_child() == &child3);
+    REQUIRE(child1.parent() == nullptr);
+    REQUIRE(child3.prev_sibling() == nullptr);
+    REQUIRE(child3.next_sibling() == nullptr);
+
+    root.unlink_child(&child3);
+    REQUIRE(root.first_child() == nullptr);
+    REQUIRE(root.last_child() == nullptr);
+    REQUIRE(child3.parent() == nullptr);
+}
+
 TEST_CASE("Tree constructed", "[tree]") {
     // compile-time checks
     static_assert(
