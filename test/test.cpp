@@ -3,6 +3,7 @@
 
 #include "tree.h"
 #include <vector>
+#include <array>
 
 struct no_copy {
     no_copy() = default;
@@ -235,6 +236,53 @@ TEST_CASE("tree_node are unlinked from parent", "[tree_node::unlink_child]") {
     REQUIRE(root.first_child() == nullptr);
     REQUIRE(root.last_child() == nullptr);
     REQUIRE(child3.parent() == nullptr);
+}
+
+TEST_CASE("pre_order_iterator iterates over nodes", "[pre_order_iterator]") {
+    tree_node<int> root{1};
+    tree_node<int> child1{2};
+    tree_node<int> child2{3};
+    tree_node<int> child3{4};
+
+    tree_node<int> grandchild_1_1{5};
+    tree_node<int> grandchild_1_2{6};
+    tree_node<int> grandchild_1_3{7};
+
+    tree_node<int> grandchild_2_1{8};
+    tree_node<int> grandchild_2_2{9};
+
+    tree_node<int> grandchild_3_1{10};
+
+    root.push_back_child(&child1);
+    root.push_back_child(&child2);
+    root.push_back_child(&child3);
+
+    child1.push_back_child(&grandchild_1_1);
+    child1.push_back_child(&grandchild_1_2);
+    child1.push_back_child(&grandchild_1_3);
+
+    child2.push_back_child(&grandchild_2_1);
+    child2.push_back_child(&grandchild_2_2);
+
+    child3.push_back_child(&grandchild_3_1);
+
+    std::array<int, 10> required_order = {1, 2, 5, 6, 7, 3, 8, 9, 4, 10};
+
+    {
+        pre_order_iterator<int> it{&root};
+        for (size_t i = 0; i < 10; i++) {
+            REQUIRE(*it == required_order[i]);
+            it++;
+        }
+    }
+
+    {
+        pre_order_iterator<int> it{&root};
+        for (size_t i = 0; i < 10; i++) {
+            REQUIRE(*it == required_order[i]);
+            ++it;
+        }
+    }
 }
 
 TEST_CASE("Tree constructed", "[tree]") {

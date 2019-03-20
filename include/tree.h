@@ -2,6 +2,7 @@
 #define TREE_H_INCLUDED
 
 #include <type_traits>
+#include <iterator>
 #include <utility>
 #include <memory>
 #include <cassert>
@@ -236,6 +237,103 @@ struct tree_node : private tree_node_impl<T>, private detail::enable_special_mem
         child_impl->parent = nullptr;
         child_impl->prev_sibling = nullptr;
         child_impl->next_sibling = nullptr;
+    }
+};
+
+template <typename T>
+class tree_iterator {
+public:
+    using value_type = std::remove_cv_t<T>;
+    using pointer = T*;
+    using reference = T&;
+    using difference_type = intptr_t;
+    using iterator_category = std::bidirectional_iterator_tag;
+
+    tree_iterator() noexcept
+        : curr_node{nullptr} {}
+
+    explicit tree_iterator(tree_node<T>* node) noexcept
+        : curr_node{node} {}
+
+    tree_iterator(const tree_iterator& other) noexcept = default;
+    tree_iterator(tree_iterator&& other) noexcept = default;
+
+    virtual ~tree_iterator() noexcept = default;
+
+    bool operator == (const tree_iterator& other) const noexcept {
+        return curr_node == other.curr_node;
+    }
+
+    bool operator != (const tree_iterator& other) const noexcept {
+        return !(*this == other);
+    }
+
+    T& operator * () const noexcept {
+        return curr_node->value();
+    }
+
+    T* operator -> () const noexcept {
+        return &curr_node->value();
+    }
+
+protected:
+    tree_node<T>* curr_node;
+};
+
+template <typename T>
+class pre_order_iterator : public tree_iterator<T> {
+public:
+    using tree_iterator<T>::curr_node;
+
+    pre_order_iterator() noexcept = default;
+
+    explicit pre_order_iterator(tree_node<T>* node) noexcept
+        : tree_iterator<T>{node} {}
+
+    pre_order_iterator(const pre_order_iterator& other) noexcept = default;
+    pre_order_iterator(pre_order_iterator&& other) noexcept = default;
+
+    ~pre_order_iterator() noexcept = default;
+
+    pre_order_iterator& operator ++ () noexcept {
+        if (curr_node->first_child() != nullptr) {
+            curr_node = curr_node->first_child();
+        } else {
+            while (curr_node != nullptr && curr_node->next_sibling() == nullptr) {
+                curr_node = curr_node->parent();
+            }
+
+            if (curr_node != nullptr) {
+                curr_node = curr_node->next_sibling();
+            }
+        }
+
+        return *this;
+    }
+
+    pre_order_iterator& operator -- () noexcept {
+        if (curr_node->prev_sibling() != nullptr) {
+            curr_node = curr_node->prev_sibling();
+            while (curr_node->last_child() != nullptr) {
+                curr_node = curr_node->last_child();
+            }
+        } else {
+            curr_node = curr_node->parent();
+        }
+
+        return *this;
+    }
+
+    pre_order_iterator operator ++ (int) noexcept {
+        pre_order_iterator tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    pre_order_iterator operator -- (int) noexcept {
+        pre_order_iterator tmp = *this;
+        --(*this);
+        return tmp;
     }
 };
 
