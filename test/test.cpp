@@ -283,6 +283,22 @@ TEST_CASE("pre_order_iterator iterates over nodes", "[pre_order_iterator]") {
             ++it;
         }
     }
+
+    {
+        pre_order_iterator<int> it{&grandchild_3_1};
+        for (size_t i = 0; i < 10; i++) {
+            REQUIRE(*it == required_order[required_order.size() - 1 - i]);
+            --it;
+        }
+    }
+
+    {
+        pre_order_iterator<int> it{&grandchild_3_1};
+        for (size_t i = 0; i < 10; i++) {
+            REQUIRE(*it == required_order[required_order.size() - 1 - i]);
+            it--;
+        }
+    }
 }
 
 TEST_CASE("Tree constructed", "[tree]") {
