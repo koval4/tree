@@ -240,6 +240,9 @@ struct tree_node : private tree_node_impl<T>, private detail::enable_special_mem
     }
 };
 
+template <typename T, typename Allocator>
+class tree;
+
 template <typename T>
 class tree_iterator {
 public:
@@ -248,6 +251,9 @@ public:
     using reference = T&;
     using difference_type = intptr_t;
     using iterator_category = std::bidirectional_iterator_tag;
+
+    template <typename, typename>
+    friend class tree;
 
     tree_iterator() noexcept
         : curr_node{nullptr} {}
@@ -407,11 +413,16 @@ struct tree_storage {
     tree_node<T>* root;
 };
 
+template <typename T>
+class pre_order_view;
+
 template <typename T, typename Allocator = std::allocator<tree_node<T>>>
 class tree
     : private tree_storage<T, Allocator>
     , private detail::enable_special_members<T> {
     using base = tree_storage<T, Allocator>;
+
+    friend class pre_order_view<T>;
 
 public:
     using allocator_type  = Allocator;
@@ -440,6 +451,54 @@ public:
     void clear() noexcept {
         base::clear();
     }
+
+};
+
+template <typename T>
+class pre_order_view {
+public:
+    using iterator               = pre_order_iterator<T>;
+    using const_iterator         = pre_order_iterator<const T>;
+    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    pre_order_view(const tree<T>& tree)
+        : root{tree.root} {}
+
+    iterator begin() const noexcept {
+        return iterator{root};
+    }
+
+    iterator end() const noexcept {
+        return iterator{nullptr};
+    }
+
+    const_iterator cbegin() const noexcept {
+        return const_iterator{root};
+    }
+
+    const_iterator cend() const noexcept {
+        return const_iterator{nullptr};
+    }
+
+    reverse_iterator rbegin() const noexcept {
+        return std::make_reverse_iterator(end());
+    }
+
+    reverse_iterator rend() const noexcept {
+        return std::make_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crbegin() const noexcept {
+        return std::make_reverse_iterator(cend());
+    }
+
+    const_reverse_iterator crend() const noexcept {
+        return std::make_reverse_iterator(cbegin());
+    }
+
+private:
+    tree_node<T>* root;
 };
 
 #endif // TREE_H_INCLUDED
