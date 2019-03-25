@@ -269,7 +269,7 @@ TEST_CASE("pre_order_iterator iterates over nodes", "[pre_order_iterator]") {
     std::array<int, 10> required_order = {1, 2, 5, 6, 7, 3, 8, 9, 4, 10};
 
     {
-        pre_order_iterator<int> it{&root};
+        pre_order_iterator<int> it{&root, nullptr};
         for (size_t i = 0; i < 10; i++) {
             REQUIRE(*it == required_order[i]);
             it++;
@@ -277,7 +277,7 @@ TEST_CASE("pre_order_iterator iterates over nodes", "[pre_order_iterator]") {
     }
 
     {
-        pre_order_iterator<int> it{&root};
+        pre_order_iterator<int> it{&root, nullptr};
         for (size_t i = 0; i < 10; i++) {
             REQUIRE(*it == required_order[i]);
             ++it;
@@ -285,18 +285,18 @@ TEST_CASE("pre_order_iterator iterates over nodes", "[pre_order_iterator]") {
     }
 
     {
-        pre_order_iterator<int> it{&grandchild_3_1};
+        pre_order_iterator<int> it{nullptr, &grandchild_3_1};
         for (size_t i = 0; i < 10; i++) {
-            REQUIRE(*it == required_order[required_order.size() - 1 - i]);
             --it;
+            REQUIRE(*it == required_order[required_order.size() - 1 - i]);
         }
     }
 
     {
-        pre_order_iterator<int> it{&grandchild_3_1};
+        pre_order_iterator<int> it{nullptr, &grandchild_3_1};
         for (size_t i = 0; i < 10; i++) {
-            REQUIRE(*it == required_order[required_order.size() - 1 - i]);
             it--;
+            REQUIRE(*it == required_order[required_order.size() - 1 - i]);
         }
     }
 }

@@ -258,8 +258,9 @@ public:
     tree_iterator() noexcept
         : curr_node{nullptr} {}
 
-    explicit tree_iterator(tree_node<T>* node) noexcept
-        : curr_node{node} {}
+    explicit tree_iterator(tree_node<T>* node, tree_node<T>* prev_node) noexcept
+        : curr_node{node}
+        , prev_node{prev_node} {}
 
     tree_iterator(const tree_iterator& other) noexcept = default;
     tree_iterator(tree_iterator&& other) noexcept = default;
@@ -267,7 +268,8 @@ public:
     virtual ~tree_iterator() noexcept = default;
 
     bool operator == (const tree_iterator& other) const noexcept {
-        return curr_node == other.curr_node;
+        return curr_node == other.curr_node
+            && prev_node == other.prev_node;
     }
 
     bool operator != (const tree_iterator& other) const noexcept {
@@ -284,17 +286,19 @@ public:
 
 protected:
     tree_node<T>* curr_node;
+    tree_node<T>* prev_node;
 };
 
 template <typename T>
 class pre_order_iterator : public tree_iterator<T> {
 public:
     using tree_iterator<T>::curr_node;
+    using tree_iterator<T>::prev_node;
 
     pre_order_iterator() noexcept = default;
 
-    explicit pre_order_iterator(tree_node<T>* node) noexcept
-        : tree_iterator<T>{node} {}
+    explicit pre_order_iterator(tree_node<T>* node, tree_node<T>* prev_node) noexcept
+        : tree_iterator<T>{node, prev_node} {}
 
     pre_order_iterator(const pre_order_iterator& other) noexcept = default;
     pre_order_iterator(pre_order_iterator&& other) noexcept = default;
@@ -302,6 +306,7 @@ public:
     ~pre_order_iterator() noexcept = default;
 
     pre_order_iterator& operator ++ () noexcept {
+        prev_node = curr_node;
         if (curr_node->first_child() != nullptr) {
             curr_node = curr_node->first_child();
         } else {
@@ -318,13 +323,16 @@ public:
     }
 
     pre_order_iterator& operator -- () noexcept {
-        if (curr_node->prev_sibling() != nullptr) {
-            curr_node = curr_node->prev_sibling();
-            while (curr_node->last_child() != nullptr) {
-                curr_node = curr_node->last_child();
+        curr_node = prev_node;
+        if (prev_node != nullptr) {
+            if (prev_node->prev_sibling() != nullptr) {
+                prev_node = prev_node->prev_sibling();
+                while (prev_node->last_child() != nullptr) {
+                    prev_node = prev_node->last_child();
+                }
+            } else {
+                prev_node = prev_node->parent();
             }
-        } else {
-            curr_node = curr_node->parent();
         }
 
         return *this;
@@ -452,6 +460,18 @@ public:
         base::clear();
     }
 
+private:
+    tree_node<T>* find_last_node() const noexcept {
+        if (base::root != nullptr) {
+            tree_node<T>* node = base::root;
+            while (node->last_child() != nullptr) {
+                node = node->last_child();
+            }
+            return node;
+        } else {
+            return nullptr;
+        }
+    }
 };
 
 template <typename T>
@@ -463,22 +483,22 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     pre_order_view(const tree<T>& tree)
-        : root{tree.root} {}
+        : viewable{tree} {}
 
     iterator begin() const noexcept {
-        return iterator{root};
+        return iterator{viewable.root, nullptr};
     }
 
     iterator end() const noexcept {
-        return iterator{nullptr};
+        return iterator{nullptr, viewable.find_last_node()};
     }
 
     const_iterator cbegin() const noexcept {
-        return const_iterator{root};
+        return const_iterator{viewable.root, nullptr};
     }
 
     const_iterator cend() const noexcept {
-        return const_iterator{nullptr};
+        return const_iterator{nullptr, viewable.find_last_node()};
     }
 
     reverse_iterator rbegin() const noexcept {
@@ -498,7 +518,7 @@ public:
     }
 
 private:
-    tree_node<T>* root;
+    const tree<T>& viewable;
 };
 
 #endif // TREE_H_INCLUDED
