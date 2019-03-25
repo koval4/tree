@@ -238,6 +238,55 @@ struct tree_node : private tree_node_impl<T>, private detail::enable_special_mem
         child_impl->prev_sibling = nullptr;
         child_impl->next_sibling = nullptr;
     }
+
+    friend void replace(tree_node* old_node, tree_node* new_node) noexcept {
+        auto old_impl = static_cast<impl*>(old_node);
+        auto new_impl = static_cast<impl*>(new_node);
+        impl* parent = old_impl->parent;
+
+        new_impl->parent = parent;
+        if (parent != nullptr) {
+            if (parent->first_child == old_impl) {
+                parent->first_child = new_impl;
+            }
+            if (parent->last_child == old_impl) {
+                parent->last_child = new_impl;
+            }
+        }
+
+        new_impl->prev_sibling = old_impl->prev_sibling;
+        if (old_impl->prev_sibling != nullptr) {
+            old_impl->prev_sibling->next_sibling = new_impl;
+        }
+        new_impl->next_sibling = old_impl->next_sibling;
+        if (old_impl->next_sibling != nullptr) {
+            old_impl->next_sibling->prev_sibling = new_impl;
+        }
+
+        old_impl->parent       = nullptr;
+        old_impl->prev_sibling = nullptr;
+        old_impl->next_sibling = nullptr;
+    }
+
+    friend void insert_sibling(tree_node* old_node, tree_node* new_node) noexcept {
+        auto old_impl = static_cast<impl*>(old_node);
+        auto new_impl = static_cast<impl*>(new_node);
+        impl* parent = old_impl->parent;
+
+        assert(parent != nullptr);
+        new_impl->parent = parent;
+        if (parent->first_child == old_impl) {
+            parent->first_child = new_impl;
+        }
+
+        new_impl->prev_sibling = old_impl->prev_sibling;
+        new_impl->next_sibling = old_impl;
+        old_impl->prev_sibling = new_impl;
+
+        if (old_impl->prev_sibling != nullptr) {
+            old_impl->prev_sibling->next_sibling = new_impl;
+        }
+    }
 };
 
 template <typename T, typename Allocator>
@@ -424,6 +473,14 @@ struct tree_storage {
 template <typename T>
 class pre_order_view;
 
+namespace insertion {
+    struct vert_tag {};
+    struct hor_tag {};
+
+    inline constexpr vert_tag vert;
+    inline constexpr hor_tag hor;
+}
+
 template <typename T, typename Allocator = std::allocator<tree_node<T>>>
 class tree
     : private tree_storage<T, Allocator>
@@ -443,13 +500,16 @@ public:
     using size_type       = size_t;
     using difference_type = ptrdiff_t;
 
-    tree() = default;
+    tree()
+        : base{}
+        , node_count{0} {};
 
     explicit tree(Allocator alloc) noexcept
-        : base{std::move(alloc)} {};
+        : base{std::move(alloc)}
+        , node_count{0} {};
 
     size_type size() const noexcept {
-        return 0;
+        return node_count;
     }
 
     bool empty() const noexcept {
@@ -458,6 +518,53 @@ public:
 
     void clear() noexcept {
         base::clear();
+    }
+
+    template <typename Iterator>
+    void insert(insertion::vert_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
+        tree_node<T>* node = it.curr_node;
+        tree_node<T>* new_node = base::create_node(base::alloc, value);
+
+        if (node != nullptr) {
+            tree_node<T>* parent = node->parent();
+            if (parent != nullptr) {
+                replace(node, new_node);
+            } else {
+                base::root = new_node;
+            }
+            new_node->push_back_child(node);
+        } else {
+            tree_node<T>* last_node = find_last_node();
+            if (last_node != nullptr) {
+                last_node->push_back_child(new_node);
+            } else {
+                base::root = new_node;
+            }
+        }
+
+        node_count++;
+    }
+
+    template <typename Iterator>
+    void insert(insertion::hor_tag, Iterator it, const T& value) {
+        tree_node<T>* node = it.curr_node;
+        tree_node<T>* new_node = base::create_node(base::alloc, value);
+
+        if (node != nullptr) {
+            tree_node<T>* parent = node->parent();
+            assert(parent != nullptr);
+            insert_sibling(node, new_node);
+        } else {
+            tree_node<T>* last_node = find_last_node();
+            if (last_node != nullptr) {
+                tree_node<T>* parent = last_node->parent();
+                parent->push_back_child(new_node);
+            } else {
+                base::root = new_node;
+            }
+        }
+
+        node_count++;
     }
 
 private:
@@ -472,6 +579,8 @@ private:
             return nullptr;
         }
     }
+
+    size_t node_count;
 };
 
 template <typename T>
