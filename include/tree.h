@@ -482,6 +482,9 @@ public:
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+    using reference       = typename tree<T>::reference;
+    using const_reference = typename tree<T>::const_reference;
+
     pre_order_view(const tree<T>& tree)
         : viewable{tree} {}
 
@@ -515,6 +518,22 @@ public:
 
     const_reverse_iterator crend() const noexcept {
         return std::make_reverse_iterator(cbegin());
+    }
+
+    reference front() noexcept {
+        return *begin();
+    }
+
+    const_reference front() const noexcept {
+        return *begin();
+    }
+
+    reference back() noexcept {
+        return *(--end());
+    }
+
+    const_reference back() const noexcept {
+        return *(--end());
     }
 
 private:
