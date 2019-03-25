@@ -407,7 +407,7 @@ struct tree_storage {
     template <typename... Args>
     static tree_node<T>* create_node(Allocator& alloc, Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args&&...>) {
         tree_node<T>* node = allocator_traits::allocate(alloc, 1);
-        allocator_traits::construct(alloc, std::forward<Args>(args)...);
+        allocator_traits::construct(alloc, node, std::forward<Args>(args)...);
         return node;
     }
 
