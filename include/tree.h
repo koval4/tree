@@ -591,8 +591,13 @@ public:
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+    using value_type      = typename tree<T>::value_type;
     using reference       = typename tree<T>::reference;
     using const_reference = typename tree<T>::const_reference;
+    using pointer         = typename tree<T>::pointer;
+    using const_pointer   = typename tree<T>::const_pointer;
+    using size_type       = typename tree<T>::size_type;
+    using difference_type = typename tree<T>::difference_type;
 
     pre_order_view(const tree<T>& tree)
         : viewable{tree} {}
@@ -643,6 +648,14 @@ public:
 
     const_reference back() const noexcept {
         return *(--end());
+    }
+
+    size_type size() const noexcept {
+        return viewable.size();
+    }
+
+    bool empty() const noexcept {
+        return viewable.empty();
     }
 
 private:
