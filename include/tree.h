@@ -529,9 +529,25 @@ public:
     }
 
     template <typename Iterator>
+    void insert(insertion::vert_tag, Iterator it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
+        tree_node<T>* old_node = it.curr_node;
+        tree_node<T>* new_node = base::create_node(base::alloc, std::move(value));
+        insert_node_vert(old_node, new_node);
+        node_count++;
+    }
+
+    template <typename Iterator>
     void insert(insertion::hor_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
         tree_node<T>* old_node = it.curr_node;
         tree_node<T>* new_node = base::create_node(base::alloc, value);
+        insert_node_hor(old_node, new_node);
+        node_count++;
+    }
+
+    template <typename Iterator>
+    void insert(insertion::hor_tag, Iterator it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
+        tree_node<T>* old_node = it.curr_node;
+        tree_node<T>* new_node = base::create_node(base::alloc, std::move(value));
         insert_node_hor(old_node, new_node);
         node_count++;
     }
