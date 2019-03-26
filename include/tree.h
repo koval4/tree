@@ -546,7 +546,7 @@ public:
     }
 
     template <typename Iterator>
-    void insert(insertion::hor_tag, Iterator it, const T& value) {
+    void insert(insertion::hor_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
         tree_node<T>* node = it.curr_node;
         tree_node<T>* new_node = base::create_node(base::alloc, value);
 
