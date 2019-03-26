@@ -522,17 +522,30 @@ public:
 
     template <typename Iterator>
     void insert(insertion::vert_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
-        tree_node<T>* node = it.curr_node;
+        tree_node<T>* old_node = it.curr_node;
         tree_node<T>* new_node = base::create_node(base::alloc, value);
+        insert_node_vert(old_node, new_node);
+        node_count++;
+    }
 
-        if (node != nullptr) {
-            tree_node<T>* parent = node->parent();
+    template <typename Iterator>
+    void insert(insertion::hor_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
+        tree_node<T>* old_node = it.curr_node;
+        tree_node<T>* new_node = base::create_node(base::alloc, value);
+        insert_node_hor(old_node, new_node);
+        node_count++;
+    }
+
+private:
+    void insert_node_vert(tree_node<T>* old_node, tree_node<T>* new_node) noexcept {
+        if (old_node != nullptr) {
+            tree_node<T>* parent = old_node->parent();
             if (parent != nullptr) {
-                replace(node, new_node);
+                replace(old_node, new_node);
             } else {
                 base::root = new_node;
             }
-            new_node->push_back_child(node);
+            new_node->push_back_child(old_node);
         } else {
             tree_node<T>* last_node = find_last_node();
             if (last_node != nullptr) {
@@ -541,19 +554,13 @@ public:
                 base::root = new_node;
             }
         }
-
-        node_count++;
     }
 
-    template <typename Iterator>
-    void insert(insertion::hor_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
-        tree_node<T>* node = it.curr_node;
-        tree_node<T>* new_node = base::create_node(base::alloc, value);
-
-        if (node != nullptr) {
-            tree_node<T>* parent = node->parent();
+    void insert_node_hor(tree_node<T>* old_node, tree_node<T>* new_node) noexcept {
+        if (old_node != nullptr) {
+            tree_node<T>* parent = old_node->parent();
             assert(parent != nullptr);
-            insert_sibling(node, new_node);
+            insert_sibling(old_node, new_node);
         } else {
             tree_node<T>* last_node = find_last_node();
             if (last_node != nullptr) {
@@ -563,11 +570,8 @@ public:
                 base::root = new_node;
             }
         }
-
-        node_count++;
     }
 
-private:
     tree_node<T>* find_last_node() const noexcept {
         if (base::root != nullptr) {
             tree_node<T>* node = base::root;
