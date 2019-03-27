@@ -418,3 +418,87 @@ TEST_CASE("Nodes are inserted into tree", "[tree::insert]") {
         REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
     }
 }
+
+TEST_CASE("Nodes are appended and prepended to tree", "[tree::append, tree::prepend]") {
+    tree<int> _1;
+    pre_order_view view{_1};
+    _1.insert(insertion::vert, std::begin(view), 1);
+
+    {
+        _1.append_child(std::begin(view), 2);
+
+        std::array required_order = {1, 2};
+        REQUIRE(_1.size() == 2);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        _1.append_child(std::begin(view), 3);
+
+        std::array required_order = {1, 2, 3};
+        REQUIRE(_1.size() == 3);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        _1.append_child(std::begin(view), 4);
+
+        std::array required_order = {1, 2, 3, 4};
+        REQUIRE(_1.size() == 4);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 2);
+        _1.prepend_child(it, 5);
+
+        std::array required_order = {1, 2, 5, 3, 4};
+        REQUIRE(_1.size() == 5);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 2);
+        _1.prepend_child(it, 6);
+
+        std::array required_order = {1, 2, 6, 5, 3, 4};
+        REQUIRE(_1.size() == 6);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 2);
+        _1.prepend_child(it, 7);
+
+        std::array required_order = {1, 2, 7, 6, 5, 3, 4};
+        REQUIRE(_1.size() == 7);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 3);
+        _1.prepend_child(it, 8);
+
+        std::array required_order = {1, 2, 7, 6, 5, 3, 8, 4};
+        REQUIRE(_1.size() == 8);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 3);
+        _1.append_child(it, 9);
+
+        std::array required_order = {1, 2, 7, 6, 5, 3, 8, 9, 4};
+        REQUIRE(_1.size() == 9);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 4);
+        _1.append_child(it, 10);
+
+        std::array required_order = {1, 2, 7, 6, 5, 3, 8, 9, 4, 10};
+        REQUIRE(_1.size() == 10);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+}

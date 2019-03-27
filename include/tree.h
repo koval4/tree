@@ -552,6 +552,27 @@ public:
         node_count++;
     }
 
+    template <typename Iterator>
+    void append_child(Iterator parent_it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
+        assert(parent_it.curr_node != nullptr);
+        parent_it.curr_node->push_back_child(base::create_node(base::alloc, value));
+        node_count++;
+    }
+
+    template <typename Iterator>
+    void append_child(Iterator parent_it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
+        assert(parent_it.curr_node != nullptr);
+        parent_it.curr_node->push_back_child(base::create_node(base::alloc, std::move(value)));
+        node_count++;
+    }
+
+    template <typename Iterator>
+    void prepend_child(Iterator parent_it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
+        assert(parent_it.curr_node != nullptr);
+        parent_it.curr_node->push_front_child(base::create_node(base::alloc, std::move(value)));
+        node_count++;
+    }
+
 private:
     void insert_node_vert(tree_node<T>* old_node, tree_node<T>* new_node) noexcept {
         if (old_node != nullptr) {
