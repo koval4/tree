@@ -281,11 +281,11 @@ struct tree_node : private tree_node_impl<T>, private detail::enable_special_mem
 
         new_impl->prev_sibling = old_impl->prev_sibling;
         new_impl->next_sibling = old_impl;
-        old_impl->prev_sibling = new_impl;
 
         if (old_impl->prev_sibling != nullptr) {
             old_impl->prev_sibling->next_sibling = new_impl;
         }
+        old_impl->prev_sibling = new_impl;
     }
 };
 
