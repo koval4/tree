@@ -4,6 +4,7 @@
 #include "tree.h"
 #include <vector>
 #include <array>
+#include <algorithm>
 
 struct no_copy {
     no_copy() = default;
@@ -324,4 +325,96 @@ TEST_CASE("Tree constructed", "[tree]") {
     tree<int> _1;
     REQUIRE(_1.empty());
     REQUIRE(_1.size() == 0);
+}
+
+TEST_CASE("Nodes are inserted into tree", "[tree::insert]") {
+    tree<int> _1;
+    pre_order_view view{_1};
+
+    {
+        _1.insert(insertion::vert, std::begin(view), 1);
+        REQUIRE(_1.size() == 1);
+        REQUIRE(view.front() == 1);
+    }
+
+    {
+        _1.insert(insertion::vert, std::end(view), 2);
+        REQUIRE(_1.size() == 2);
+        REQUIRE(view.back() == 2);
+    }
+
+    {
+        _1.insert(insertion::hor, std::end(view), 3);
+        REQUIRE(_1.size() == 3);
+        REQUIRE(view.back() == 3);
+    }
+
+    {
+        _1.insert(insertion::hor, std::end(view), 4);
+        REQUIRE(_1.size() == 4);
+        REQUIRE(view.back() == 4);
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 2);
+        _1.insert(insertion::vert, it, 5);
+
+        std::array required_order = {1, 5, 2, 3, 4};
+        REQUIRE(view.size() == 5);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 2);
+        _1.insert(insertion::hor, it, 6);
+
+        std::array required_order = {1, 5, 6, 2, 3, 4};
+        REQUIRE(view.size() == 6);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 2);
+        _1.insert(insertion::hor, it, 7);
+
+        std::array required_order = {1, 5, 6, 7, 2, 3, 4};
+        REQUIRE(view.size() == 7);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 3);
+        _1.insert(insertion::vert, it, 8);
+
+        std::array required_order = {1, 5, 6, 7, 2, 8, 3, 4};
+        REQUIRE(view.size() == 8);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 3);
+        _1.insert(insertion::hor, it, 9);
+
+        std::array required_order = {1, 5, 6, 7, 2, 8, 9, 3, 4};
+        REQUIRE(view.size() == 9);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 4);
+        _1.insert(insertion::vert, it, 10);
+
+        std::array required_order = {1, 5, 6, 7, 2, 8, 9, 3, 10, 4};
+        REQUIRE(view.size() == 10);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 8);
+        _1.insert(insertion::vert, it, 11);
+
+        std::array required_order = {1, 5, 6, 7, 2, 11, 8, 9, 3, 10, 4};
+        REQUIRE(view.size() == 11);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
 }
