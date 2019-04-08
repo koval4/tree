@@ -573,6 +573,18 @@ public:
         node_count++;
     }
 
+    template <typename Iterator>
+    void erase_subtree(Iterator node_it) noexcept {
+        assert(node_it.curr_node != nullptr);
+        tree_node<T>* node   = node_it.curr_node;
+        tree_node<T>* parent = node->parent();
+
+        parent->unlink_child(node);
+
+        node_count -= count_nodes(node);
+        base::clear_node_impl(node);
+    }
+
 private:
     void insert_node_vert(tree_node<T>* old_node, tree_node<T>* new_node) noexcept {
         if (old_node != nullptr) {
@@ -619,6 +631,16 @@ private:
         } else {
             return nullptr;
         }
+    }
+
+    size_t count_nodes(const tree_node<T>* node) const noexcept {
+        size_t result = 1;
+        const tree_node<T>* curr = node->first_child();
+        while (curr != nullptr) {
+            result += count_nodes(curr);
+            curr = curr->next_sibling();
+        }
+        return result;
     }
 
     size_t node_count;

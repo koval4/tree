@@ -502,3 +502,54 @@ TEST_CASE("Nodes are appended and prepended to tree", "[tree::append, tree::prep
         REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
     }
 }
+
+TEST_CASE("Tree nodes are erased", "[tree::erase_subtree]") {
+    tree<int> _1;
+    pre_order_view view{_1};
+    _1.insert(insertion::vert, std::begin(view), 1);
+    _1.append_child(std::begin(view), 2);
+    _1.append_child(std::begin(view), 3);
+    _1.append_child(std::begin(view), 4);
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 2);
+        _1.append_child(it, 5);
+        _1.append_child(it, 6);
+        _1.append_child(it, 7);
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 3);
+        _1.append_child(it, 8);
+        _1.append_child(it, 9);
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 3);
+        _1.append_child(it, 10);
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 10);
+        _1.erase_subtree(it);
+
+        std::array required_order = {1, 2, 5, 6, 7, 3, 8, 9, 4};
+        REQUIRE(_1.size() == 9);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        auto it = std::find(std::begin(view), std::end(view), 3);
+        _1.erase_subtree(it);
+
+        std::array required_order = {1, 2, 5, 6, 7, 4};
+        REQUIRE(_1.size() == 6);
+        REQUIRE(std::equal(std::begin(view), std::end(view), std::begin(required_order)));
+    }
+
+    {
+        _1.erase_subtree(std::begin(view));
+        REQUIRE(_1.size() == 0);
+        REQUIRE(_1.empty());
+    }
+}
