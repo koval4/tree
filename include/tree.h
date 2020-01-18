@@ -423,6 +423,14 @@ public:
         return &curr_node->value();
     }
 
+    tree_traverser<T> as_traverser() {
+        return tree_traverser<T>{ curr_node };
+    }
+
+    tree_traverser<const T> as_traverser() const {
+        return tree_traverser<const T>{ curr_node };
+    }
+
 protected:
     tree_node<T>* curr_node;
     tree_node<T>* prev_node;
