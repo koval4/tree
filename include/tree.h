@@ -293,6 +293,96 @@ template <typename T, typename Allocator>
 class tree;
 
 template <typename T>
+class tree_traverser {
+public:
+    tree_traverser(tree_node<T>* node)
+        : curr_node{ node } {}
+
+    tree_traverser(const tree_traverser& other) = default;
+    tree_traverser(tree_traverser&& other) = default;
+
+    tree_traverser<T> prev_sibling() const noexcept {
+        return tree_traverser<T>{ curr_node->prev_sibling() };
+    }
+
+    tree_traverser<T> next_sibling() const noexcept {
+        return tree_traverser<T>{ curr_node->next_sibling() };
+    }
+
+    tree_traverser<T> first_child() const noexcept {
+        return tree_traverser<T>{ curr_node->first_child() };
+    }
+
+    tree_traverser<T> last_child() const noexcept {
+        return tree_traverser<T>{ curr_node->last_child() };
+    }
+
+    tree_traverser<T> parent() const noexcept {
+        return tree_traverser<T>{ curr_node->parent() };
+    }
+
+    bool has_prev_sibling() noexcept {
+        return curr_node->prev_sibling() != nullptr;
+    }
+
+    bool has_next_sibling() noexcept {
+        return curr_node->next_sibling() != nullptr;
+    }
+
+    bool has_first_child() noexcept {
+        return curr_node->first_child() != nullptr;
+    }
+
+    bool has_last_child() noexcept {
+        return curr_node->last_child() != nullptr;
+    }
+
+    bool has_parent() noexcept {
+        return curr_node->parent() != nullptr;
+    }
+
+    bool to_prev_sibling() noexcept {
+        return to_node(curr_node->prev_sibling());
+    }
+
+    bool to_next_sibling() noexcept {
+        return to_node(curr_node->next_sibling());
+    }
+
+    bool to_first_child() noexcept {
+        return to_node(curr_node->first_child());
+    }
+
+    bool to_last_child() noexcept {
+        return to_node(curr_node->last_child());
+    }
+
+    bool to_parent() noexcept {
+        return to_node(curr_node->parent());
+    }
+
+    T& value() noexcept {
+        return curr_node->value();
+    }
+
+    const T& value() const noexcept {
+        return curr_node->value();
+    }
+
+private:
+    bool to_node(tree_node<T>* next) noexcept {
+        if (next) {
+            curr_node = next;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    tree_node<T>* curr_node;
+};
+
+template <typename T>
 class tree_iterator {
 public:
     using value_type = std::remove_cv_t<T>;
