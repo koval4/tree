@@ -635,56 +635,66 @@ public:
     }
 
     template <typename Iterator>
-    void insert(insertion::vert_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
+    Iterator insert(insertion::vert_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
         tree_node<T>* old_node = it.curr_node;
         tree_node<T>* new_node = base::create_node(base::alloc, value);
         insert_node_vert(old_node, new_node);
         node_count++;
+        return Iterator{new_node};
     }
 
     template <typename Iterator>
-    void insert(insertion::vert_tag, Iterator it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
+    Iterator insert(insertion::vert_tag, Iterator it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
         tree_node<T>* old_node = it.curr_node;
         tree_node<T>* new_node = base::create_node(base::alloc, std::move(value));
         insert_node_vert(old_node, new_node);
         node_count++;
+        return Iterator{new_node};
     }
 
     template <typename Iterator>
-    void insert(insertion::hor_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
+    Iterator insert(insertion::hor_tag, Iterator it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
         tree_node<T>* old_node = it.curr_node;
         tree_node<T>* new_node = base::create_node(base::alloc, value);
         insert_node_hor(old_node, new_node);
         node_count++;
+        return Iterator{new_node};
     }
 
     template <typename Iterator>
-    void insert(insertion::hor_tag, Iterator it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
+    Iterator insert(insertion::hor_tag, Iterator it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
         tree_node<T>* old_node = it.curr_node;
         tree_node<T>* new_node = base::create_node(base::alloc, std::move(value));
         insert_node_hor(old_node, new_node);
         node_count++;
+        return Iterator{new_node};
     }
 
     template <typename Iterator>
-    void append_child(Iterator parent_it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
+    Iterator append_child(Iterator parent_it, const T& value) noexcept(std::is_nothrow_constructible_v<T, const T&>) {
         assert(parent_it.curr_node != nullptr);
-        parent_it.curr_node->push_back_child(base::create_node(base::alloc, value));
+        tree_node<T>* node = base::create_node(base::alloc, value);
+        parent_it.curr_node->push_back_child(node);
         node_count++;
+        return Iterator{node};
     }
 
     template <typename Iterator>
-    void append_child(Iterator parent_it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
+    Iterator append_child(Iterator parent_it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
         assert(parent_it.curr_node != nullptr);
-        parent_it.curr_node->push_back_child(base::create_node(base::alloc, std::move(value)));
+        tree_node<T>* node = base::create_node(base::alloc, std::move(value));
+        parent_it.curr_node->push_back_child(node);
         node_count++;
+        return Iterator{node};
     }
 
     template <typename Iterator>
-    void prepend_child(Iterator parent_it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
+    Iterator prepend_child(Iterator parent_it, T&& value) noexcept(std::is_nothrow_constructible_v<T, T&&>) {
         assert(parent_it.curr_node != nullptr);
-        parent_it.curr_node->push_front_child(base::create_node(base::alloc, std::move(value)));
+        tree_node<T>* node = base::create_node(base::alloc, std::move(value));
+        parent_it.curr_node->push_front_child(node);
         node_count++;
+        return Iterator{node};
     }
 
     template <typename Iterator>
