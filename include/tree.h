@@ -447,6 +447,9 @@ public:
     explicit pre_order_iterator(tree_node<T>* node, tree_node<T>* prev_node) noexcept
         : tree_iterator<T>{node, prev_node} {}
 
+    explicit pre_order_iterator(tree_node<T>* node) noexcept
+        : tree_iterator<T>{node, get_prev_node(node)} {}
+
     pre_order_iterator(const pre_order_iterator& other) noexcept = default;
     pre_order_iterator(pre_order_iterator&& other) noexcept = default;
 
@@ -495,6 +498,19 @@ public:
         pre_order_iterator tmp = *this;
         --(*this);
         return tmp;
+    }
+
+private:
+    static tree_node<T>* get_prev_node(tree_node<T>* node) noexcept {
+        if (node->prev_sibling() != nullptr) {
+            node = node->prev_sibling();
+            while (node->last_child() != nullptr) {
+                node = node->last_child();
+            }
+        } else {
+            node = node->parent();
+        }
+        return node;
     }
 };
 
